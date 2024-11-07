@@ -1,0 +1,32 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql" // or your preferred database
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Jetton {
+  id              String            @id @default(uuid())
+  name            String
+  symbol          String
+  image           String
+  description     String
+  ownerAddress    String
+  contractAddress String            @unique
+  totalSupply     String
+  createdAt       DateTime          @default(now())
+  mintTransactions MintTransaction[]
+}
+
+model MintTransaction {
+  id               String   @id @default(uuid())
+  jettonId         String
+  recipientAddress String
+  amount           String
+  transactionHash  String
+  timestamp        DateTime @default(now())
+  jetton           Jetton   @relation(fields: [jettonId], references: [id])
+}

@@ -14,6 +14,8 @@ import glob from "fast-glob";
 import { Address, Cell, CellMessage, CommonMessageInfo, fromNano, InternalMessage, StateInit, toNano } from "ton";
 import { TonClient, WalletContract, WalletV3R2Source, contractAddress, SendMode } from "ton";
 import { mnemonicNew, mnemonicToWalletKey } from "ton-crypto";
+import { PrismaClient } from '@prisma/client';
+// or import mongoose if using MongoDB
 
 interface DeployParams {
   name: string;
@@ -27,11 +29,13 @@ interface DeployParams {
 
 export class DeployService {
   private client: TonClient;
+  private db: PrismaClient;
   
   constructor(isTestnet: boolean = true) {
     this.client = new TonClient({
       endpoint: `https://${isTestnet ? "testnet." : ""}toncenter.com/api/v2/jsonRPC`
     });
+    this.db = new PrismaClient();
   }
 
   async deployJetton(params: DeployParams) {
@@ -81,7 +85,38 @@ export class DeployService {
         // initMessageCell
       );
       console.log("Deploy result:", deployResult);
-      return deployResult;
+
+      // After successful deployment, store in database
+      const jettonData = await this.db.jetton.create({
+        data: {
+          name: params.name,
+          symbol: params.symbol,
+          image: params.image,
+          description: params.description,
+          ownerAddress: params.ownerAddress,
+          contractAddress: deployResult.contractMaster,
+          totalSupply: "0", // Initial supply
+          createdAt: new Date()
+        }
+      });
+
+      // Store initial mint transaction if any
+      if (deployResult.initialMint) {
+        await this.db.mintTransaction.create({
+          data: {
+            jettonId: jettonData.id,
+            recipientAddress: params.ownerAddress,
+            amount: deployResult.initialMint.toString(),
+            transactionHash: deployResult.transactionHash,
+            timestamp: new Date()
+          }
+        });
+      }
+
+      return {
+        ...deployResult,
+        jettonData
+      };
 
     } catch (error) {
       console.error("Deployment failed:", error);
@@ -139,6 +174,7 @@ export class DeployService {
   
     // go over all the contracts we have deploy scripts for
     const rootContracts = glob.sync(["build/*.deploy.ts"]);
+    let contractMaster = "";
     for (const rootContract of rootContracts) {
       // deploy a new root contract
       console.log(`\n* Found root contract '${rootContract} - let's deploy it':`);
@@ -204,6 +240,7 @@ export class DeployService {
         const seqnoAfter = await walletContract.getSeqNo();
         if (seqnoAfter > seqno) break;
       }
+      contractMaster = newContractAddress.toFriendly()
       if (await client.isContractDeployed(newContractAddress)) {
         console.log(` - SUCCESS! Contract deployed successfully to address: ${newContractAddress.toFriendly()}`);
         const contractBalance = await client.getBalance(newContractAddress);
@@ -214,17 +251,48 @@ export class DeployService {
       }
     }
     function sleep(ms: number) {
-        return new Promise((resolve) => setTimeout(resolve, ms));
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+    
+    async function performPostDeploymentTest(rootContract: string, deployInitScript: any, walletContract: WalletContract, secretKey: Buffer, newContractAddress: Address) {
+      if (typeof deployInitScript.postDeployTest !== "function") {
+        console.log(` - Not running a post deployment test, '${rootContract}' does not have 'postDeployTest()' function`);
+        return;
       }
-      
-      async function performPostDeploymentTest(rootContract: string, deployInitScript: any, walletContract: WalletContract, secretKey: Buffer, newContractAddress: Address) {
-        if (typeof deployInitScript.postDeployTest !== "function") {
-          console.log(` - Not running a post deployment test, '${rootContract}' does not have 'postDeployTest()' function`);
-          return;
-        }
-        console.log(` - Running a post deployment test:`);
-        await deployInitScript.postDeployTest(walletContract, secretKey, newContractAddress);
-      }
+      console.log(` - Running a post deployment test:`);
+      await deployInitScript.postDeployTest(walletContract, secretKey, newContractAddress);
+    }
+
+    return {
+      client,
+      walletContract,
+      walletKey,
+      contractMaster,
+      initialMint: process.env.AMOUNT ? BigInt(process.env.AMOUNT) : undefined,
+      transactionHash: "" // Add if you have access to the transaction hash
+    };
   }
   
+  // Add methods to query jetton information
+  async getJettonsByOwner(ownerAddress: string) {
+    return this.db.jetton.findMany({
+      where: {
+        ownerAddress
+      },
+      include: {
+        mintTransactions: true
+      }
+    });
+  }
+
+  async getJettonDetails(contractAddress: string) {
+    return this.db.jetton.findUnique({
+      where: {
+        contractAddress
+      },
+      include: {
+        mintTransactions: true
+      }
+    });
+  }
 } 
