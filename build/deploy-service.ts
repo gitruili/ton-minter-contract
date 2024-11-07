@@ -95,7 +95,7 @@ export class DeployService {
           description: params.description,
           ownerAddress: params.ownerAddress,
           contractAddress: deployResult.contractMaster,
-          totalSupply: "0", // Initial supply
+          totalSupply: params.amount.toString(), // Initial supply
           createdAt: new Date()
         }
       });
