@@ -21,7 +21,8 @@ interface DeployParams {
   image: string;
   description: string;
   ownerAddress: string;
-  deployerMnemonic: string;
+  amount: number;
+  // deployerMnemonic: string;
 }
 
 export class DeployService {
@@ -37,24 +38,24 @@ export class DeployService {
     console.log("Deploying jetton with params:", params);
     try {
       // Convert mnemonic to wallet key
-      const walletKey = await mnemonicToWalletKey(params.deployerMnemonic.split(" "));
-      console.log("Wallet key:", walletKey);
+      // const walletKey = await mnemonicToWalletKey(params.deployerMnemonic.split(" "));
+      // console.log("Wallet key:", walletKey);
       
       // Create wallet contract
-      const walletContract = WalletContract.create(
-        this.client, 
-        WalletV3R2Source.create({ 
-          publicKey: walletKey.publicKey, 
-          workchain: 0 
-        })
-      );
+      // const walletContract = WalletContract.create(
+      //   this.client, 
+      //   WalletV3R2Source.create({ 
+      //     publicKey: walletKey.publicKey, 
+      //     workchain: 0 
+      //   })
+      // );
 
       // Check wallet balance
-      const walletBalance = await this.client.getBalance(walletContract.address);
-      console.log("Wallet balance:", walletBalance);
-      if (walletBalance.lt(toNano(0.2))) {
-        throw new Error("Insufficient wallet balance. Minimum 0.2 TON required.");
-      }
+      // const walletBalance = await this.client.getBalance(walletContract.address);
+      // console.log("Wallet balance:", walletBalance);
+      // if (walletBalance.lt(toNano(0.2))) {
+      //   throw new Error("Insufficient wallet balance. Minimum 0.2 TON required.");
+      // }
 
       // Override jettonParams in deploy script
       process.env.JETTON_NAME = params.name;
@@ -62,21 +63,22 @@ export class DeployService {
       process.env.JETTON_IMAGE = params.image;
       process.env.JETTON_DESCRIPTION = params.description;
       process.env.OWNER_ADDRESS = params.ownerAddress;
+      process.env.AMOUNT = params.amount.toString();
 
       // Get init data and message
-      const initDataCell = initData();
-      console.log("Init data cell:", initDataCell);
-      const initMessageCell = initMessage();
-      console.log("Init message cell:", initMessageCell);
+      // const initDataCell = initData();
+      // console.log("Init data cell:", initDataCell);
+      // const initMessageCell = initMessage();
+      // console.log("Init message cell:", initMessageCell);
 
       // Deploy logic similar to _deploy.ts
       // Reference the deployment logic from build/_deploy.ts lines 106-140
       
       const deployResult = await this.executeDeployment(
         // walletContract,
-        walletKey.secretKey,
-        initDataCell,
-        initMessageCell
+        // walletKey.secretKey,
+        // initDataCell,
+        // initMessageCell
       );
       console.log("Deploy result:", deployResult);
       return deployResult;
@@ -87,7 +89,7 @@ export class DeployService {
     }
   }
 
-  private async executeDeployment( secretKey: Buffer, initDataCell: Cell, initMessageCell: Cell) {
+  private async executeDeployment() {
     // Implementation referencing build/_deploy.ts
     // Lines 106-140 contain the core deployment logic
     console.log(`=================================================================`);
@@ -105,7 +107,8 @@ export class DeployService {
     // initialize globals
     const client = new TonClient({ endpoint: `https://${isTestnet ? "testnet." : ""}toncenter.com/api/v2/jsonRPC` });
     const deployerWalletType = "org.ton.wallets.v3.r2"; // also see WalletV3R2Source class used below
-    const newContractFunding = toNano(0.5); // this will be (almost in full) the balance of a new deployed contract and allow it to pay rent
+    // const newContractFunding = toNano(0.5); // this will be (almost in full) the balance of a new 
+    const newContractFunding = toNano(0.05); // this will be (almost in full) the balance of a new deployed contract and allow it to pay rent
     const workchain = 0; // normally 0, only special contracts should be deployed to masterchain (-1)
   
     // make sure we have a wallet mnemonic to deploy from (or create one if not found)

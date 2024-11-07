@@ -17,12 +17,18 @@ const SNAKE_PREFIX = 0x00;
 // - Owner should usually be the deploying wallet's address.
 const jettonParams = {
   // owner: Address.parse("EQD4gS-Nj2Gjr2FYtg-s3fXUvjzKbzHGZ5_1Xe_V0-GCp0p2"),
-  owner: Address.parse("0QDJfKCBIXK5xu4VXZHgKoQLqUAkkLs811F5YAFBAswnazgc"),
-  name: "lrtest17",
-  symbol: "lr17",
-  image: "https://www.linkpicture.com/q/download_183.png", // Image url
-  description: "My jetton lr17",
+  // owner: Address.parse("0QDJfKCBIXK5xu4VXZHgKoQLqUAkkLs811F5YAFBAswnazgc"),
+  // name: "lrtest17",
+  // symbol: "lr17",
+  // image: "https://www.linkpicture.com/q/download_183.png", // Image url
+  // description: "My jetton lr17",
   // totalSupply: 0, // Specify your desired total supply here
+  owner: process.env.OWNER_ADDRESS,
+  name:  process.env.JETTON_NAME,
+  symbol:  process.env.JETTON_SYMBOL,
+  image: process.env.JETTON_IMAGE, // Image url
+  description: process.env.JETTON_DESCRIPTION,
+  amount: process.env.AMOUNT,
 };
 
 export type JettonMetaDataKeys = "name" | "description" | "image" | "symbol";
@@ -136,7 +142,7 @@ export function jettonMinterInitData(
 
 // return the init Cell of the contract storage (according to load_data() contract method)
 export function initData() {
-  return jettonMinterInitData(jettonParams.owner, {
+  return jettonMinterInitData(Address.parse(jettonParams.owner!), {
     name: jettonParams.name,
     symbol: jettonParams.symbol,
     image: jettonParams.image,
@@ -149,7 +155,12 @@ export function initData() {
 // return the op that should be sent to the contract on deployment, can be "null" to send an empty message
 export function initMessage() {
   // return null; // TODO?
-  return JettonMinter.mintBody(Address.parse("0QDJfKCBIXK5xu4VXZHgKoQLqUAkkLs811F5YAFBAswnazgc"), toNano(200000))
+  console.log("amount is: ", jettonParams.amount!, Number(jettonParams.amount!))
+  return JettonMinter.mintBody(
+    Address.parse("0QDJfKCBIXK5xu4VXZHgKoQLqUAkkLs811F5YAFBAswnazgc"), 
+    // toNano(200000)
+    toNano(Number(jettonParams.amount!))
+  )
 }
 
 // optional end-to-end sanity test for the actual on-chain contract to see it is actually working on-chain

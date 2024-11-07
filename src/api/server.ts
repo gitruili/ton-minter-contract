@@ -8,10 +8,10 @@ const deployService = new DeployService(true); // true for testnet
 
 app.post("/api/deploy", async (req, res) => {
   try {
-    const { name, symbol, image, description, ownerAddress, deployerMnemonic } = req.body;
+    const { name, symbol, image, description, ownerAddress, amount } = req.body;
     
     // Validate required parameters
-    if (!name || !symbol || !image || !description || !ownerAddress || !deployerMnemonic) {
+    if (!name || !symbol || !image || !description || !ownerAddress || !amount) {
       return res.status(400).json({ 
         error: "Missing required parameters" 
       });
@@ -23,7 +23,8 @@ app.post("/api/deploy", async (req, res) => {
       image,
       description,
       ownerAddress,
-      deployerMnemonic
+      amount
+      // deployerMnemonic
     });
 
     res.json({
