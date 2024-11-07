@@ -40,6 +40,21 @@ app.post("/api/deploy", async (req, res) => {
   }
 });
 
+app.get("/api/jettons", async (req, res) => {
+  try {
+    const jettons = await deployService.getJettons();
+    res.json({
+      success: true,
+      data: jettons
+    });
+  } catch (error: unknown) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
+    });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

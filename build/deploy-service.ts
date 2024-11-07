@@ -295,4 +295,8 @@ export class DeployService {
       }
     });
   }
+
+  async getJettons() {
+    return this.db.jetton.findMany();
+  }
 } 
