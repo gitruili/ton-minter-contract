@@ -34,7 +34,8 @@ async function main() {
   // initialize globals
   const client = new TonClient({ endpoint: `https://${isTestnet ? "testnet." : ""}toncenter.com/api/v2/jsonRPC` });
   const deployerWalletType = "org.ton.wallets.v3.r2"; // also see WalletV3R2Source class used below
-  const newContractFunding = toNano(0.02); // this will be (almost in full) the balance of a new deployed contract and allow it to pay rent
+  // const newContractFunding = toNano(0.02);
+  const newContractFunding = toNano(0.5); // this will be (almost in full) the balance of a new deployed contract and allow it to pay rent
   const workchain = 0; // normally 0, only special contracts should be deployed to masterchain (-1)
 
   // make sure we have a wallet mnemonic to deploy from (or create one if not found)

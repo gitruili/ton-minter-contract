@@ -27,7 +27,8 @@ export class JettonMinter extends WrappedSmartContract {
       .storeUint(OPS.Mint, 32) // opcode (reference TODO)
       .storeUint(0, 64) // queryid
       .storeAddress(ownerAddress)
-      .storeCoins(toNano(0.2)) // gas fee
+      // .storeCoins(toNano(0.2)) // gas fee
+      .storeCoins(toNano(0.02)) // gas fee
       .storeRef(
         // internal transfer message
         beginCell()
@@ -35,8 +36,10 @@ export class JettonMinter extends WrappedSmartContract {
           .storeUint(0, 64)
           .storeCoins(jettonValue)
           .storeAddress(null) // TODO FROM?
-          .storeAddress(null) // TODO RESP?
-          .storeCoins(0)
+          // .storeAddress(null) // TODO RESP?
+          .storeAddress(ownerAddress) // TODO RESP?
+          // .storeCoins(0)
+          .storeCoins(toNano(0.001))
           .storeBit(false) // forward_payload in this slice, not separate cell
           .endCell()
       )
