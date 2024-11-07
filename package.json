@@ -23,7 +23,7 @@
     "postinstall": "ts-node ./build/_setup.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:setup": "ts-node src/prisma/setup.ts"
+    "prisma:setup": "ts-node prisma/setup.ts"
   },
   "devDependencies": {
     "@swc/core": "^1.9.1",
