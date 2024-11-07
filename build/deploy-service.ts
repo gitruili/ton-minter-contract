@@ -101,17 +101,17 @@ export class DeployService {
       });
 
       // Store initial mint transaction if any
-      if (deployResult.initialMint) {
+      // if (deployResult.initialMint) {
         await this.db.mintTransaction.create({
           data: {
             jettonId: jettonData.id,
             recipientAddress: params.ownerAddress,
-            amount: deployResult.initialMint.toString(),
+            amount: params.amount.toString(),
             transactionHash: deployResult.transactionHash,
             timestamp: new Date()
           }
         });
-      }
+      // }
 
       return {
         ...deployResult,
