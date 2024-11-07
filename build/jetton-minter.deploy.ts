@@ -4,7 +4,6 @@ import walletHex from "./jetton-wallet.compiled.json";
 import minterHex from "./jetton-minter.compiled.json";
 import { Sha256 } from "@aws-crypto/sha256-js";
 import BN from "bn.js";
-import { internalMessage } from "../test/helpers";
 import { JettonMinter } from "../test/lib/jetton-minter";
 
 export const JETTON_WALLET_CODE = Cell.fromBoc(walletHex.hex)[0];
