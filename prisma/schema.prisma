@@ -19,6 +19,8 @@ model Jetton {
   totalSupply     String
   createdAt       DateTime          @default(now())
   mintTransactions MintTransaction[]
+  isDeleted       Boolean           @default(false)
+  network         Int               @default(0)
 }
 
 model MintTransaction {
